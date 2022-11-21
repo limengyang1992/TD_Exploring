@@ -50,15 +50,14 @@ def sim_epoch(model,data,topk,batch,device=torch.device("cuda:0")):
 device = torch.device("cuda:0")
 model = CosineSimilarity().to(device)
 
-def compute_feat_similarity(feat_paths,save_path,topk=10,batch=1000):
-    results = np.zeros((200,50000,topk*2))
+def compute_feat_similarity(feat_paths,topk=10,batch=1000):
     for i,path in enumerate(feat_paths):
+        save_path = path.replace("feat_","topk_")
         print(f"total epoch: {len(feat_paths)}, current eopch: {i}")
         ids = os.path.split(path)[1].split("_")[1].split(".")[0]
         data  = np.load(path)
         total = sim_epoch(model,data,topk,batch)
-        results[int(ids),:,:] = total
-    np.savez_compressed(save_path,results)
+        np.save(save_path,total)
         
          
 if __name__ == "__main__":

@@ -107,7 +107,6 @@ def main():
 
     best_acc = 0
     
-    logit_total_numpy = np.zeros((args.epochs,50000,num_classes+1))
     for epoch in range(args.epochs):
         # logging.info("Epoch [%03d/%03d]" % (epoch, args.epochs))
         # train for one epoch
@@ -157,11 +156,10 @@ def main():
         numpy_feat = torch.cat(behaviour_dict["feat"]).cpu().detach().numpy()
         numpy_index = torch.cat(behaviour_dict["index"]).cpu().detach().numpy()
         numpy_feat_ = np.concatenate([numpy_index[:,np.newaxis],numpy_feat],axis=1)
-        
         numpy_logit_ = np.concatenate([numpy_index[:,np.newaxis],numpy_logit],axis=1)
         np.save(f'exps/{args.name}/runs/feat_{epoch}.npy',numpy_feat_)
+        np.save(f'exps/{args.name}/runs/logit_{epoch}.npy',numpy_logit_)
         
-        logit_total_numpy[epoch,:,:] = numpy_logit_
         
         if val_log['acc'] > best_acc:
             
@@ -175,19 +173,18 @@ def main():
             )
             best_acc = val_log['acc']
 
-    # 保存 logit_numpy
-    logit_path = f'exps/{args.name}/logit_total.npz'
-    np.savez_compressed(logit_path,logit_total_numpy)
+
     # 计算相似度
     feat_root = f'exps/{args.name}/runs'
     feat_paths = glob(os.path.join(feat_root,"feat_*.npy"))
-    knn_path = f'exps/{args.name}/knn_result.npz'
-    compute_feat_similarity(feat_paths,knn_path)
+    compute_feat_similarity(feat_paths)
 
     
     # 上传cos[邻居id、logit、log.csv][path = args.name]
-    cos_upload_file(knn_path)
-    cos_upload_file(logit_path)
+    for p_logit in glob(os.path.join(feat_root,"logit_*.npy")):
+        cos_upload_file(p_logit)
+    for p_topk in glob(os.path.join(feat_root,"topk_*.npy")):
+        cos_upload_file(p_topk)
     cos_upload_file(f'exps/{args.name}/log.csv')
     cos_upload_file(f'exps/{args.name}/args.txt')
     
