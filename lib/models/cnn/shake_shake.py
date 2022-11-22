@@ -120,9 +120,9 @@ class ShakeResNet(nn.Module):
         out = self.stage_3(out)
         out = F.relu(out)
         out = F.avg_pool2d(out, 8)
-        out = out.view(-1, self.in_chs[3])
-        out = self.fc_out(out)
-        return out
+        feat = out.view(-1, self.in_chs[3])
+        out = self.fc_out(feat)
+        return out,feat
 
     def _make_layer(self, n_units, in_ch, out_ch, stride=1):
         layers = []

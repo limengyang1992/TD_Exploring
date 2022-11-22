@@ -6,3 +6,6 @@ python tools/train.py --model resnet32 --dataset cifar10 --epochs 200  && \
 python tools/train.py --model resnet32 --dataset cifar100 --epochs 200  \
 
 ) &
+
+
+# python tools/train.py --model shake_resnet26_2x32d --dataset cifar10 --epochs 2

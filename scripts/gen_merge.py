@@ -64,6 +64,6 @@ for i,(x,y) in enumerate(zip(data_x_init,data_y_init)):
 numpy_merge_x = np.stack(merge_x)         
 numpy_merge_y = np.stack(merge_y)     
 
-np.save(f"behaviour_dataset/{dataset}_x_merge.npy",numpy_merge_x)
-np.save(f"behaviour_dataset/{dataset}_y_merge.npy",numpy_merge_y)
+np.savez_compressed(f"behaviour_dataset/{dataset}_x_merge.npz",numpy_merge_x)
+np.savez_compressed(f"behaviour_dataset/{dataset}_y_merge.npz",numpy_merge_y)
     

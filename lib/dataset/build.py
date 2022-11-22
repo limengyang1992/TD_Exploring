@@ -17,10 +17,10 @@ class CIFAR(Dataset):
         targets_path,
         transform):
 
-        self.data = np.load(data_path)
+        self.data = np.load(data_path)["arr_0"]
         self.data = (255*(self.data/2+0.5)).astype(np.uint8).clip(min=0, max=255)
         self.data = self.data.transpose((0, 2, 3, 1)) 
-        self.targets = np.load(targets_path)
+        self.targets = np.load(targets_path)["arr_0"]
         self.transform = transform
 
 
@@ -53,8 +53,8 @@ def build_dataset(type='train',
     if name == 'cifar10':
         if type == 'train':
             dataset_type = CIFAR(
-                data_path=f"behaviour_dataset/{name}_x_merge.npy",
-                targets_path=f"behaviour_dataset/{name}_y_merge.npy",
+                data_path=f"behaviour_dataset/{name}_x_merge.npz",
+                targets_path=f"behaviour_dataset/{name}_y_merge.npz",
                 transform=build_transforms('cifar10', 'train', args=args),
             )
         elif type == 'val':
@@ -68,8 +68,8 @@ def build_dataset(type='train',
     elif name == 'cifar100':
         if type == 'train':
             dataset_type = CIFAR(
-                data_path=f"behaviour_dataset/{name}_x_merge.npy",
-                targets_path=f"behaviour_dataset/{name}_y_merge.npy",
+                data_path=f"behaviour_dataset/{name}_x_merge.npz",
+                targets_path=f"behaviour_dataset/{name}_y_merge.npz",
                 transform=build_transforms('cifar100', 'train', args=args),
             )
         elif type == 'val':

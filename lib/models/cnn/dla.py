@@ -131,9 +131,9 @@ class DLA(nn.Module):
         out = self.layer5(out)
         out = self.layer6(out)
         out = F.avg_pool2d(out, 4)
-        out = out.view(out.size(0), -1)
-        out = self.linear(out)
-        return out
+        feat = out.view(out.size(0), -1)
+        out = self.linear(feat)
+        return out,feat
 
 
 @register_model

@@ -97,9 +97,9 @@ class GoogLeNet(nn.Module):
         out = self.a5(out)
         out = self.b5(out)
         out = self.avgpool(out)
-        out = out.view(out.size(0), -1)
-        out = self.linear(out)
-        return out
+        feat = out.view(out.size(0), -1)
+        out = self.linear(feat)
+        return out,feat
 
 
 @register_model

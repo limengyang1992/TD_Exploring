@@ -154,12 +154,12 @@ class EfficientNet(nn.Module):
         out = swish(self.bn1(self.conv1(x)))
         out = self.layers(out)
         out = F.adaptive_avg_pool2d(out, 1)
-        out = out.view(out.size(0), -1)
+        feat = out.view(out.size(0), -1)
         dropout_rate = self.cfg['dropout_rate']
         if self.training and dropout_rate > 0:
-            out = F.dropout(out, p=dropout_rate)
-        out = self.linear(out)
-        return out
+            feat = F.dropout(feat, p=dropout_rate)
+        out = self.linear(feat)
+        return out,feat
 
 
 @register_model

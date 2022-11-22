@@ -299,10 +299,10 @@ class InceptionV4(nn.Module):
         x = self.inception_c(x)
         x = self.avgpool(x)
         x = self.dropout(x)
-        x = x.view(-1, 1536)
-        x = self.linear(x)
+        feat = x.view(-1, 1536)
+        x = self.linear(feat)
 
-        return x
+        return x,feat
 
     @staticmethod
     def _generate_inception_module(input_channels, output_channels, block_num,
@@ -520,10 +520,10 @@ class InceptionResNetV2(nn.Module):
         x = self.inception_resnet_c(x)
         x = self.avgpool(x)
         x = self.dropout(x)
-        x = x.view(-1, 2048)
-        x = self.linear(x)
+        feat = x.view(-1, 2048)
+        x = self.linear(feat)
 
-        return x
+        return x,feat
 
     @staticmethod
     def _generate_inception_module(input_channels, output_channels, block_num,

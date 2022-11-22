@@ -318,10 +318,10 @@ class Attention(nn.Module):
         x = self.stage3(x)
         x = self.stage4(x)
         x = self.avg(x)
-        x = x.view(x.size(0), -1)
-        x = self.linear(x)
+        feat = x.view(x.size(0), -1)
+        x = self.linear(feat)
 
-        return x
+        return x,feat
 
     def _make_stage(self, in_channels, out_channels, num, block):
 

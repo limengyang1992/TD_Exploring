@@ -235,7 +235,7 @@ def main(_):
 
 if __name__ == "__main__":
     flags.DEFINE_integer("nb_epochs", 8, "Number of epochs.")
-    flags.DEFINE_string("dataset", "cifar100", "Number of epochs.")
+    flags.DEFINE_string("dataset", "cifar10", "Number of epochs.")
     flags.DEFINE_float("eps", 0.3, "Total epsilon for FGM and PGD attacks.")
     flags.DEFINE_bool(
         "adv_train", False, "Use adversarial training (on PGD adversarial examples)."

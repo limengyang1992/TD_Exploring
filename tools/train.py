@@ -48,44 +48,44 @@ def main():
     args.name = build_expname(args)
 
     writer = SummaryWriter(
-        'exps/%s/runs/%s-%05d' %
-        (args.name, time.strftime('%m-%d',
-                                  time.localtime()), random.randint(0, 100)))
+        "exps/%s/runs/%s-%05d"
+        % (args.name, time.strftime("%m-%d", time.localtime()), random.randint(0, 100))
+    )
 
-    if not os.path.exists('exps/%s' % args.name):
-        os.makedirs('exps/%s' % args.name)
+    if not os.path.exists("exps/%s" % args.name):
+        os.makedirs("exps/%s" % args.name)
 
-    print('--------Config -----')
+    print("--------Config -----")
     for arg in vars(args):
-        print('%s: %s' % (arg, getattr(args, arg)))
-    print('--------------------')
+        print("%s: %s" % (arg, getattr(args, arg)))
+    print("--------------------")
 
-    with open('exps/%s/args.txt' % args.name, 'w') as f:
+    with open("exps/%s/args.txt" % args.name, "w") as f:
         for arg in vars(args):
-            print('%s: %s' % (arg, getattr(args, arg)), file=f)
+            print("%s: %s" % (arg, getattr(args, arg)), file=f)
 
-    log_format = '%(asctime)s %(message)s'
+    log_format = "%(asctime)s %(message)s"
     logging.basicConfig(
         stream=sys.stdout,
         level=logging.INFO,
         format=log_format,
-        datefmt='%m/%d %I:%M:%S %p',
+        datefmt="%m/%d %I:%M:%S %p",
     )
 
-    fh = logging.FileHandler(os.path.join('exps', args.name, 'log.txt'))
+    fh = logging.FileHandler(os.path.join("exps", args.name, "log.txt"))
     fh.setFormatter(logging.Formatter(log_format))
     logging.getLogger().addHandler(fh)
     logging.info(args)
 
     #######################################################################
 
-    train_loader = build_dataloader(args.dataset, type='train', args=args)
-    test_loader = build_dataloader(args.dataset, type='val', args=args)
+    train_loader = build_dataloader(args.dataset, type="train", args=args)
+    test_loader = build_dataloader(args.dataset, type="val", args=args)
 
     # create model
-    num_classes = 10 if args.dataset =="cifar10" else 100
+    num_classes = 10 if args.dataset == "cifar10" else 100
     model = build_model(args.model, num_classes=num_classes)
-    logging.info(f'param of model {args.model} is {count_params(model)}')
+    logging.info(f"param of model {args.model} is {count_params(model)}")
 
     # stat(model, (3, 32, 32))
     # from torchsummary import summary
@@ -98,38 +98,33 @@ def main():
     scheduler = build_scheduler(args, optimizer)
 
     log = pd.DataFrame(
-        index=[],
-        columns=['epoch', 'lr', 'loss', 'acc', 'val_loss', 'val_acc'])
+        index=[], columns=["epoch", "lr", "loss", "acc", "val_loss", "val_acc"]
+    )
 
-    logging.info('Training Start...')
+    logging.info("Training Start...")
 
     timer = Timer()
 
     best_acc = 0
-    
+
     for epoch in range(args.epochs):
         # logging.info("Epoch [%03d/%03d]" % (epoch, args.epochs))
         # train for one epoch
         train_log, behaviour_dict = train_one_epoch(
-                args,
-                train_loader,
-                model,
-                criterion,
-                optimizer,
-                epoch,
-                scheduler=scheduler,
-                writer=writer,
+            args,
+            train_loader,
+            model,
+            criterion,
+            optimizer,
+            epoch,
+            scheduler=scheduler,
+            writer=writer,
         )
 
         train_time = timer()
 
         # evaluate on validation set
-        val_log = validate(args,
-                           test_loader,
-                           model,
-                           criterion,
-                           epoch,
-                           writer=writer)
+        val_log = validate(args, test_loader, model, criterion, epoch, writer=writer)
 
         scheduler.step()
 
@@ -141,54 +136,48 @@ def main():
             [
                 epoch,
                 scheduler.get_last_lr()[0],
-                train_log['loss'],
-                train_log['acc'],
-                val_log['loss'],
-                val_log['acc'],
+                train_log["loss"],
+                train_log["acc"],
+                val_log["loss"],
+                val_log["acc"],
             ],
-            index=['epoch', 'lr', 'loss', 'acc', 'val_loss', 'val_acc'],
+            index=["epoch", "lr", "loss", "acc", "val_loss", "val_acc"],
         )
 
         log = log.append(tmp, ignore_index=True)
-        log.to_csv('exps/%s/log.csv' % args.name, index=False)
-        
+        log.to_csv("exps/%s/log.csv" % args.name, index=False)
+
         numpy_logit = torch.cat(behaviour_dict["logit"]).cpu().detach().numpy()
         numpy_feat = torch.cat(behaviour_dict["feat"]).cpu().detach().numpy()
         numpy_index = torch.cat(behaviour_dict["index"]).cpu().detach().numpy()
-        numpy_feat_ = np.concatenate([numpy_index[:,np.newaxis],numpy_feat],axis=1)
-        numpy_logit_ = np.concatenate([numpy_index[:,np.newaxis],numpy_logit],axis=1)
-        np.save(f'exps/{args.name}/runs/feat_{epoch}.npy',numpy_feat_)
-        np.save(f'exps/{args.name}/runs/logit_{epoch}.npy',numpy_logit_)
-        
-        
-        if val_log['acc'] > best_acc:
-            
+        numpy_feat_ = np.concatenate([numpy_index[:, np.newaxis], numpy_feat], axis=1)
+        numpy_logit_ = np.concatenate([numpy_index[:, np.newaxis], numpy_logit], axis=1)
+        np.savez_compressed(f"exps/{args.name}/runs/feat_{epoch}.npz", numpy_feat_)
+        np.savez_compressed(f"exps/{args.name}/runs/logit_{epoch}.npz", numpy_logit_)
 
-            useless_files = glob('exps/%s/*.pth' % args.name)
+        if val_log["acc"] > best_acc:
+            useless_files = glob("exps/%s/*.pth" % args.name)
             for file in useless_files:
                 os.remove(file)
             torch.save(
                 model.state_dict(),
-                'exps/%s/model_%d.pth' % (args.name, (val_log['acc'] * 100)),
+                "exps/%s/model_%d.pth" % (args.name, (val_log["acc"] * 100)),
             )
-            best_acc = val_log['acc']
-
+            best_acc = val_log["acc"]
 
     # 计算相似度
-    feat_root = f'exps/{args.name}/runs'
-    feat_paths = glob(os.path.join(feat_root,"feat_*.npy"))
+    feat_root = f"exps/{args.name}/runs"
+    feat_paths = glob(os.path.join(feat_root, "feat_*.npz"))
     compute_feat_similarity(feat_paths)
 
-    
     # 上传cos[邻居id、logit、log.csv][path = args.name]
-    for p_logit in glob(os.path.join(feat_root,"logit_*.npy")):
+    for p_logit in glob(os.path.join(feat_root, "logit_*.npz")):
         cos_upload_file(p_logit)
-    for p_topk in glob(os.path.join(feat_root,"topk_*.npy")):
+    for p_topk in glob(os.path.join(feat_root, "topk_*.npz")):
         cos_upload_file(p_topk)
-    cos_upload_file(f'exps/{args.name}/log.csv')
-    cos_upload_file(f'exps/{args.name}/args.txt')
-    
-    
-    
-if __name__ == '__main__':
+    cos_upload_file(f"exps/{args.name}/log.csv")
+    cos_upload_file(f"exps/{args.name}/args.txt")
+
+
+if __name__ == "__main__":
     main()

@@ -172,9 +172,9 @@ class ShuffleNetV2(nn.Module):
         out = self.layer3(out)
         out = F.relu(self.bn2(self.conv2(out)))
         out = F.avg_pool2d(out, 4)
-        out = out.view(out.size(0), -1)
-        out = self.linear(out)
-        return out
+        feat = out.view(out.size(0), -1)
+        out = self.linear(feat)
+        return out,feat
 
 
 configs = {

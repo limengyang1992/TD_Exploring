@@ -46,12 +46,16 @@ if __name__ == "__main__":
     
     #下载 训练数据
     
-    cifar10_x = "behaviour_dataset/cifar10_x_merge.npy"
-    cifar10_y = "behaviour_dataset/cifar10_y_merge.npy"
-    cifar100_x = "behaviour_dataset/cifar100_x_merge.npy"
-    cifar100_y = "behaviour_dataset/cifar100_y_merge.npy"
+    cifar10_x = "behaviour_dataset/cifar10_x_merge.npz"
+    cifar10_y = "behaviour_dataset/cifar10_y_merge.npz"
+    cifar100_x = "behaviour_dataset/cifar100_x_merge.npz"
+    cifar100_y = "behaviour_dataset/cifar100_y_merge.npz"
     
-    cos_download(cifar10_x, cifar10_x)
-    cos_download(cifar10_y, cifar10_y)
-    cos_download(cifar100_x, cifar100_x)
-    cos_download(cifar100_y, cifar100_y)
+    # cos_download(cifar10_x, cifar10_x)
+    # cos_download(cifar10_y, cifar10_y)
+    # cos_download(cifar100_x, cifar100_x)
+    # cos_download(cifar100_y, cifar100_y)
+    cos_upload_file(cifar10_x)
+    cos_upload_file(cifar10_y)
+    cos_upload_file(cifar100_x)
+    cos_upload_file(cifar100_y)

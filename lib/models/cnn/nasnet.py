@@ -326,10 +326,10 @@ class NasNetA(nn.Module):
         x, prev = self.cell_layers((x, prev))
         x = self.relu(x)
         x = self.avg(x)
-        x = x.view(x.size(0), -1)
-        x = self.fc(x)
+        feat = x.view(x.size(0), -1)
+        x = self.fc(feat)
 
-        return x
+        return x,feat
 
 
 @register_model

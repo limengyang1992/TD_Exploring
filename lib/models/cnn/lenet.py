@@ -23,9 +23,9 @@ class LeNet(nn.Module):
         out = F.max_pool2d(out, 2)
         out = out.view(out.size(0), -1)
         out = F.relu(self.fc1(out))
-        out = F.relu(self.fc2(out))
-        out = self.fc3(out)
-        return out
+        feat = F.relu(self.fc2(out))
+        out = self.fc3(feat)
+        return out,feat
 
 
 @register_model

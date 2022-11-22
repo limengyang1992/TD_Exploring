@@ -218,10 +218,10 @@ class Xception(nn.Module):
         x = self.entry_flow(x)
         x = self.middel_flow(x)
         x = self.exit_flow(x)
-        x = x.view(x.size(0), -1)
-        x = self.fc(x)
+        feat = x.view(x.size(0), -1)
+        x = self.fc(feat)
 
-        return x
+        return x,feat
 
 
 @register_model

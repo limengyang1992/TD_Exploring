@@ -55,9 +55,9 @@ def compute_feat_similarity(feat_paths,topk=10,batch=1000):
         save_path = path.replace("feat_","topk_")
         print(f"total epoch: {len(feat_paths)}, current eopch: {i}")
         ids = os.path.split(path)[1].split("_")[1].split(".")[0]
-        data  = np.load(path)
+        data  = np.load(path)["arr_0"]
         total = sim_epoch(model,data,topk,batch)
-        np.save(save_path,total)
+        np.savez_compressed(save_path,total)
         
          
 if __name__ == "__main__":

@@ -217,10 +217,10 @@ class StochasticDepthResNet(nn.Module):
         output = self.conv4_x(output)
         output = self.conv5_x(output)
         output = self.avg_pool(output)
-        output = output.view(output.size(0), -1)
-        output = self.fc(output)
+        feat = output.view(output.size(0), -1)
+        output = self.fc(feat)
 
-        return output
+        return output,feat
 
 
 @register_model

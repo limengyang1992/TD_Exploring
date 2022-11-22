@@ -62,10 +62,10 @@ class WideResNet(nn.Module):
         x = self.bn(x)
         x = self.relu(x)
         x = self.avg_pool(x)
-        x = x.view(x.size(0), -1)
-        x = self.linear(x)
+        feat = x.view(x.size(0), -1)
+        x = self.linear(feat)
 
-        return x
+        return x,feat
 
     def _make_layer(self, block, out_channels, num_blocks, stride):
         """make resnet layers(by layer i didnt mean this 'layer' was the

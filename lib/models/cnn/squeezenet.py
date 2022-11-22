@@ -91,7 +91,7 @@ class SqueezeNet(nn.Module):
         x = self.avg(c10)
         x = x.view(x.size(0), -1)
 
-        return x
+        return x,x
 
 
 @register_model

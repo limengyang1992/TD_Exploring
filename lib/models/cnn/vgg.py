@@ -64,9 +64,9 @@ class VGG(nn.Module):
 
     def forward(self, x):
         out = self.features(x)
-        out = out.view(out.size(0), -1)
-        out = self.classifier(out)
-        return out
+        feat = out.view(out.size(0), -1)
+        out = self.classifier(feat)
+        return out,feat
 
     def _make_layers(self, cfg):
         layers = []

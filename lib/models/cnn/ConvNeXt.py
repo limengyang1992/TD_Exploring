@@ -135,9 +135,9 @@ class ConvNeXt(nn.Module):
             [-2, -1]))  # global average pooling, (N, C, H, W) -> (N, C)
 
     def forward(self, x):
-        x = self.forward_features(x)
-        x = self.head(x)
-        return x
+        feat = self.forward_features(x)
+        x = self.head(feat)
+        return x,feat
 
 
 class LayerNorm(nn.Module):
