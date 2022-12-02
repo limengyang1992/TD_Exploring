@@ -70,7 +70,7 @@ class BasicBlock(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self, block, num_blocks, num_classes=100):
+    def __init__(self, block, num_blocks, num_classes=100, MC=False):
         super(ResNet, self).__init__()
         self.in_planes = 16
 
@@ -85,6 +85,8 @@ class ResNet(nn.Module):
         self.layer2 = self._make_layer(block, 32, num_blocks[1], stride=2)
         self.layer3 = self._make_layer(block, 64, num_blocks[2], stride=2)
         self.linear = nn.Linear(64, num_classes)
+        self.dropout = nn.Dropout(0.25)
+        self.MCDROPOUT = MC
 
         self.apply(_weights_init)
 
@@ -94,7 +96,6 @@ class ResNet(nn.Module):
         for stride in strides:
             layers.append(block(self.in_planes, planes, stride))
             self.in_planes = planes * block.expansion
-
         return nn.Sequential(*layers)
 
     def forward(self, x):
@@ -104,13 +105,15 @@ class ResNet(nn.Module):
         out = self.layer3(out)
         out = F.avg_pool2d(out, out.size()[3])
         feat = out.view(out.size(0), -1)
+        if self.MCDROPOUT:
+            feat = self.dropout(feat)
         out = self.linear(feat)
         return out,feat
 
 
 @register_model
-def resnet20(num_classes=10):
-    return ResNet(BasicBlock, [3, 3, 3], num_classes=num_classes)
+def resnet20(num_classes=10,MC=False):
+    return ResNet(BasicBlock, [3, 3, 3], num_classes=num_classes,MC=MC)
 
 
 @register_model

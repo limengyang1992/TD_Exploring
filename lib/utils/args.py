@@ -15,7 +15,7 @@ def str2bool(v):
 def parse_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--model', default='squeezenet', help='select model')
+    parser.add_argument('--model', default='resnet20', help='select model')
 
     parser.add_argument('--name',
                         default='gpu0',

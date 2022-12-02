@@ -72,7 +72,7 @@ def build_transforms(name='cifar10', type='train', cutout=False):
             ]
 
         if cutout:
-            post_transform.append(Cutout(1, 8))
+            post_transform.append(Cutout(4, 8))
 
         transform_type = transforms.Compose([*base_transform, *post_transform])
 

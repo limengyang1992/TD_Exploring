@@ -4,7 +4,7 @@ import torch.nn as nn
 
 from ..registry import register_model
 
-__all__ = ['vgg11']
+__all__ = ['vgg11','vgg16']
 
 cfg = {
     'VGG11': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
@@ -88,6 +88,10 @@ class VGG(nn.Module):
 @register_model
 def vgg11(num_classes=10):
     return VGG('VGG11', num_classes=num_classes)
+
+@register_model
+def vgg16(num_classes=10):
+    return VGG('VGG16', num_classes=num_classes)
 
 
 def test():

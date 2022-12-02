@@ -55,7 +55,7 @@ def compute_feat_similarity(feat_paths,topk=10,batch=1000):
         save_path = path.replace("feat_","topk_")
         print(f"total epoch: {len(feat_paths)}, current eopch: {i}")
         ids = os.path.split(path)[1].split("_")[1].split(".")[0]
-        data  = np.load(path)["arr_0"]
+        data  = np.load(path)
         total = sim_epoch(model,data,topk,batch)
         np.savez_compressed(save_path,total)
         
@@ -63,9 +63,9 @@ def compute_feat_similarity(feat_paths,topk=10,batch=1000):
 if __name__ == "__main__":
     import os
     import glob
-    feat_paths = glob.glob(os.path.join("exps/e-gpu0_m-resnet20_d-cifar10__11M_19D_09H__14/runs","feat_*.npy"))
+    feat_paths = glob.glob(os.path.join("exps/e-convnext_tiny_m-convnext_tiny_d-cifar100__12M_02D_16H__42/runs","feat_*.npy"))
     save_path = "out"
-    compute_feat_similarity(feat_paths,save_path)
+    compute_feat_similarity(feat_paths,topk=2)
 
 
         

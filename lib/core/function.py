@@ -211,3 +211,35 @@ def validate(args, val_loader, model, criterion, epoch, writer):
         writer.add_scalar('Val/Acc', scores.avg, epoch)
 
     return log
+
+
+@torch.no_grad()
+def uncertain_data_epoch(model,loader1,loader2,loader3):
+    model.eval()
+    for i, (index,input,target) in enumerate(loader1):
+        input = input.cuda()
+        output,feat = model(input)
+        logit = torch.nn.functional.softmax(output,dim=1)
+        uncertains = torch.sum(logit*torch.log(logit),dim=1)
+            
+    for i, (index,input,target) in enumerate(loader2):
+        input = input.cuda()
+        output,feat = model(input)
+        logit = torch.nn.functional.softmax(output,dim=1)
+        uncertains = torch.sum(logit*torch.log(logit),dim=1)
+        
+    for i, (index,input,target) in enumerate(loader3):
+        input = input.cuda()
+        output,feat = model(input)
+        logit = torch.nn.functional.softmax(output,dim=1)
+        uncertains = torch.sum(logit*torch.log(logit),dim=1)
+        
+
+@torch.no_grad()
+def uncertain_model_epoch(model,loader):
+    for _ in range(3):
+        for i, (index,input,target) in enumerate(loader):
+            input = input.cuda()
+            output,feat = model(input)
+            logit = torch.nn.functional.softmax(output,dim=1)
+            uncertains = torch.sum(logit*torch.log(logit),dim=1)

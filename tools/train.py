@@ -16,6 +16,7 @@ import yaml
 from torch.utils.tensorboard import SummaryWriter
 
 from lib.core.function import train_one_epoch, validate
+from lib.core.function import uncertain_model_epoch, uncertain_data_epoch
 from lib.core.loss import build_criterion
 from lib.dataset import build_dataloader
 from lib.models import build_model
@@ -84,7 +85,7 @@ def main():
 
     # create model
     num_classes = 10 if args.dataset == "cifar10" else 100
-    model = build_model(args.model, num_classes=num_classes)
+    model = build_model(args.model, num_classes=num_classes, MC=False)
     logging.info(f"param of model {args.model} is {count_params(model)}")
 
     # stat(model, (3, 32, 32))
@@ -129,7 +130,15 @@ def main():
         scheduler.step()
 
         logging.info(
-            f"Epoch:[{epoch:03d}/{args.epochs:03d}] lr:{scheduler.get_last_lr()[0]:.4f} train_acc:{train_log['acc']/100.:.3f} train_loss:{train_log['loss']:.4f} train_time:{train_time:03.2f} valid_acc:{val_log['acc']/100.:.3f} valid_loss:{val_log['loss']:.4f} valid_time:{timer():03.2f} total_time: {timer()+train_time:.2f}"
+            f"Epoch:[{epoch:03d}/{args.epochs:03d}] \
+                lr:{scheduler.get_last_lr()[0]:.4f} \
+                train_acc:{train_log['acc']/100.:.3f}  \
+                train_loss:{train_log['loss']:.4f}  \
+                train_time:{train_time:03.2f}  \
+                valid_acc:{val_log['acc']/100.:.3f}  \
+                valid_loss:{val_log['loss']:.4f}  \
+                valid_time:{timer():03.2f}  \
+                total_time: {timer()+train_time:.2f}"
         )
 
         tmp = pd.Series(
@@ -152,8 +161,8 @@ def main():
         numpy_index = torch.cat(behaviour_dict["index"]).cpu().detach().numpy()
         numpy_feat_ = np.concatenate([numpy_index[:, np.newaxis], numpy_feat], axis=1)
         numpy_logit_ = np.concatenate([numpy_index[:, np.newaxis], numpy_logit], axis=1)
-        np.savez_compressed(f"exps/{args.name}/runs/feat_{epoch}.npz", numpy_feat_)
-        np.savez_compressed(f"exps/{args.name}/runs/logit_{epoch}.npz", numpy_logit_)
+        np.save(f"exps/{args.name}/runs/feat_{epoch}", numpy_feat_)
+        np.save(f"exps/{args.name}/runs/logit_{epoch}", numpy_logit_)
 
         if val_log["acc"] > best_acc:
             useless_files = glob("exps/%s/*.pth" % args.name)
@@ -165,15 +174,24 @@ def main():
             )
             best_acc = val_log["acc"]
 
-    # 计算相似度
+        # 每个epoch 计算数据不确定性
+        # val_log = uncertain_data_epoch(model, train_loader, train_loader, train_loader)
+
+        # 每个epoch 计算模型不确定性
+        uncentainM = build_model(args.model, num_classes=num_classes, MC=True)
+        uncentainM.load_state_dict(model.state_dict())
+        uncentainM = uncentainM.cuda()
+        val_log = uncertain_model_epoch(uncentainM, train_loader)
+
+    # 训练结束，计算所有epoch相似度
     feat_root = f"exps/{args.name}/runs"
-    feat_paths = glob(os.path.join(feat_root, "feat_*.npz"))
+    feat_paths = glob(os.path.join(feat_root, "feat_*.npy"))
     compute_feat_similarity(feat_paths)
 
-    # 上传cos[邻居id、logit、log.csv][path = args.name]
-    for p_logit in glob(os.path.join(feat_root, "logit_*.npz")):
+    # 训练结束，上传cos[邻居id、logit、log.csv][path = args.name]
+    for p_logit in glob(os.path.join(feat_root, "logit_*.npy")):
         cos_upload_file(p_logit)
-    for p_topk in glob(os.path.join(feat_root, "topk_*.npz")):
+    for p_topk in glob(os.path.join(feat_root, "topk_*.npy")):
         cos_upload_file(p_topk)
     cos_upload_file(f"exps/{args.name}/log.csv")
     cos_upload_file(f"exps/{args.name}/args.txt")

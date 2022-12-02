@@ -350,8 +350,10 @@ class SwinTransformer(nn.Module):
         x = self.stage2(x)
         x = self.stage3(x)
         x = self.stage4(x)
-        x = x.mean(dim=[2, 3])
-        return self.mlp_head(x)
+        feat = x.mean(dim=[2, 3])
+        x =  self.mlp_head(feat)
+        
+        return x,feat
 
 
 @register_model
