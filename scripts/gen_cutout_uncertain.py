@@ -145,11 +145,11 @@ def main(name,num):
     
 
 if __name__ == "__main__":
-    main("cifar10",1)
-    main("cifar100",1)
+    main("cifar10",4)
+    main("cifar100",4)
     
-    main("cifar10",2)
-    main("cifar100",2)
+    main("cifar10",5)
+    main("cifar100",5)
     
-    main("cifar10",3)
-    main("cifar100",3)
+    # main("cifar10",3)
+    # main("cifar100",3)

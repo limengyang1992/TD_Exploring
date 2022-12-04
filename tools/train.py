@@ -82,6 +82,12 @@ def main():
 
     train_loader = build_dataloader(args.dataset, type="train", args=args)
     test_loader = build_dataloader(args.dataset, type="val", args=args)
+    
+    cutout_loader1 = build_dataloader(args.dataset, type="uncert", number=1, args=args)
+    cutout_loader2 = build_dataloader(args.dataset, type="uncert", number=2, args=args)
+    cutout_loader3 = build_dataloader(args.dataset, type="uncert", number=3, args=args)
+    cutout_loader4 = build_dataloader(args.dataset, type="uncert", number=4, args=args)
+    cutout_loader5 = build_dataloader(args.dataset, type="uncert", number=5, args=args)
 
     # create model
     num_classes = 10 if args.dataset == "cifar10" else 100
@@ -175,13 +181,16 @@ def main():
             best_acc = val_log["acc"]
 
         # 每个epoch 计算数据不确定性
-        # val_log = uncertain_data_epoch(model, train_loader, train_loader, train_loader)
+        uncert_data = uncertain_data_epoch(model, cutout_loader1, cutout_loader2, \
+                                           cutout_loader3,cutout_loader4,cutout_loader5)
+        np.save(f"exps/{args.name}/runs/uncert_data_{epoch}", uncert_data)
 
         # 每个epoch 计算模型不确定性
         uncentainM = build_model(args.model, num_classes=num_classes, MC=True)
         uncentainM.load_state_dict(model.state_dict())
         uncentainM = uncentainM.cuda()
-        val_log = uncertain_model_epoch(uncentainM, train_loader)
+        uncert_model = uncertain_model_epoch(uncentainM, train_loader)
+        np.save(f"exps/{args.name}/runs/uncert_model_{epoch}", uncert_model)
 
     # 训练结束，计算所有epoch相似度
     feat_root = f"exps/{args.name}/runs"
@@ -189,10 +198,9 @@ def main():
     compute_feat_similarity(feat_paths)
 
     # 训练结束，上传cos[邻居id、logit、log.csv][path = args.name]
-    for p_logit in glob(os.path.join(feat_root, "logit_*.npy")):
+    for p_logit in glob(os.path.join(feat_root, "*.npy")):
         cos_upload_file(p_logit)
-    for p_topk in glob(os.path.join(feat_root, "topk_*.npy")):
-        cos_upload_file(p_topk)
+
     cos_upload_file(f"exps/{args.name}/log.csv")
     cos_upload_file(f"exps/{args.name}/args.txt")
 

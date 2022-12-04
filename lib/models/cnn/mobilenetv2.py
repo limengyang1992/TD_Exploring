@@ -74,7 +74,7 @@ class MobileNetV2(nn.Module):
         (6, 320, 1, 1)
     ]
 
-    def __init__(self, num_classes=10):
+    def __init__(self, num_classes=10, MC=False):
         super(MobileNetV2, self).__init__()
         # NOTE: change conv1 stride 2 -> 1 for CIFAR10
         self.conv1 = nn.Conv2d(3,
@@ -93,6 +93,8 @@ class MobileNetV2(nn.Module):
                                bias=False)
         self.bn2 = nn.BatchNorm2d(1280)
         self.linear = nn.Linear(1280, num_classes)
+        self.dropout = nn.Dropout(0.25)
+        self.MCDROPOUT = MC
 
     def _make_layers(self, in_planes):
         layers = []
@@ -110,13 +112,15 @@ class MobileNetV2(nn.Module):
         # NOTE: change pooling kernel_size 7 -> 4 for CIFAR10
         out = F.avg_pool2d(out, 4)
         feat = out.view(out.size(0), -1)
+        if self.MCDROPOUT:
+            feat = self.dropout(feat)
         out = self.linear(feat)
         return out,feat
 
 
 @register_model
-def mobilenetv2():
-    return MobileNetV2()
+def mobilenetv2(num_classes=10,MC=False):
+    return MobileNetV2(num_classes=num_classes,MC=MC)
 
 
 def test():

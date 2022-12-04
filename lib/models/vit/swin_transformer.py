@@ -298,7 +298,9 @@ class SwinTransformer(nn.Module):
             head_dim=32,
             window_size=4,  # from 7 to 3
             downscaling_factors=(2, 1, 2, 2),
-            relative_pos_embedding=True):  # from (4,2,2,2) to (2,1,2,2)
+            relative_pos_embedding=True,
+            MC=False):  # from (4,2,2,2) to (2,1,2,2)
+
         super().__init__()
 
         self.stage1 = StageModule(
@@ -344,6 +346,9 @@ class SwinTransformer(nn.Module):
 
         self.mlp_head = nn.Sequential(nn.LayerNorm(hidden_dim * 8),
                                       nn.Linear(hidden_dim * 8, num_classes))
+        
+        self.dropout = nn.Dropout(0.25)
+        self.MCDROPOUT = MC
 
     def forward(self, img):
         x = self.stage1(img)
@@ -351,8 +356,9 @@ class SwinTransformer(nn.Module):
         x = self.stage3(x)
         x = self.stage4(x)
         feat = x.mean(dim=[2, 3])
+        if self.MCDROPOUT:
+            feat = self.dropout(feat)    
         x =  self.mlp_head(feat)
-        
         return x,feat
 
 

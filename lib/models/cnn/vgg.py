@@ -57,14 +57,18 @@ cfg = {
 
 
 class VGG(nn.Module):
-    def __init__(self, vgg_name, num_classes=10):
+    def __init__(self, vgg_name, num_classes=10, MC=False):
         super(VGG, self).__init__()
         self.features = self._make_layers(cfg[vgg_name])
         self.classifier = nn.Linear(512, num_classes)
+        self.dropout = nn.Dropout(0.25)
+        self.MCDROPOUT = MC
 
     def forward(self, x):
         out = self.features(x)
         feat = out.view(out.size(0), -1)
+        if self.MCDROPOUT:
+            feat = self.dropout(feat)
         out = self.classifier(feat)
         return out,feat
 
@@ -86,12 +90,12 @@ class VGG(nn.Module):
 
 
 @register_model
-def vgg11(num_classes=10):
-    return VGG('VGG11', num_classes=num_classes)
+def vgg11(num_classes=10,MC=False):
+    return VGG('VGG11', num_classes=num_classes,MC=MC)
 
 @register_model
-def vgg16(num_classes=10):
-    return VGG('VGG16', num_classes=num_classes)
+def vgg16(num_classes=10,MC=False):
+    return VGG('VGG16', num_classes=num_classes,MC=MC)
 
 
 def test():

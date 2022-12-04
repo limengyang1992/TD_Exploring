@@ -78,6 +78,7 @@ class ConvNeXt(nn.Module):
         drop_path_rate=0.0,
         layer_scale_init_value=1e-6,
         head_init_scale=1.0,
+        MC=False
     ):
         super().__init__()
 
@@ -121,6 +122,8 @@ class ConvNeXt(nn.Module):
         self.apply(self._init_weights)
         self.head.weight.data.mul_(head_init_scale)
         self.head.bias.data.mul_(head_init_scale)
+        self.dropout = nn.Dropout(0.25)
+        self.MCDROPOUT = MC
 
     def _init_weights(self, m):
         if isinstance(m, (nn.Conv2d, nn.Linear)):
@@ -136,6 +139,8 @@ class ConvNeXt(nn.Module):
 
     def forward(self, x):
         feat = self.forward_features(x)
+        if self.MCDROPOUT:
+            feat = self.dropout(feat)
         x = self.head(feat)
         return x,feat
 

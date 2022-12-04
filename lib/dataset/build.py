@@ -43,10 +43,11 @@ class CIFAR(Dataset):
 def build_dataset(type='train',
                   name='cifar10',
                   root='~/data',
+                  number= None,
                   args=None,
                   fast=False):
     assert name in ['cifar10', 'cifar100']
-    assert type in ['train', 'val']
+    assert type in ['train', 'val', 'uncert']
 
     dataset_type = None
 
@@ -64,6 +65,12 @@ def build_dataset(type='train',
                 download=True,
                 transform=build_transforms('cifar10', 'val', args=args),
             )
+        elif type == 'uncert':
+            dataset_type = CIFAR(
+                data_path=f"behaviour_dataset/{name}_x_cutout_{number}.npz",
+                targets_path=f"behaviour_dataset/{name}_y_merge.npz",
+                transform=build_transforms('cifar10', 'train', args=args),
+            )
 
     elif name == 'cifar100':
         if type == 'train':
@@ -78,6 +85,12 @@ def build_dataset(type='train',
                 train=False,
                 download=True,
                 transform=build_transforms('cifar100', 'val', args=args),
+            )
+        elif type == 'uncert':
+            dataset_type = CIFAR(
+                data_path=f"behaviour_dataset/{name}_x_cutout_{number}.npz",
+                targets_path=f"behaviour_dataset/{name}_y_merge.npz",
+                transform=build_transforms('cifar100', 'train', args=args),
             )
     else:
         raise 'Type Error: {} Not Supported'.format(name)
@@ -97,8 +110,8 @@ def build_dataset(type='train',
     return dataset_type
 
 
-def build_dataloader(name='cifar10', type='train', args=None):
-    assert type in ['train', 'val']
+def build_dataloader(name='cifar10', type='train', number=None, args=None):
+    assert type in ['train', 'val', 'uncert']
     assert name in ['cifar10', 'cifar100']
     if name == 'cifar10':
         if type == 'train':
@@ -106,6 +119,7 @@ def build_dataloader(name='cifar10', type='train', args=None):
                 build_dataset('train',
                               'cifar10',
                               args.root,
+                              number=None,
                               args=args,
                               fast=args.fast),
                 batch_size=args.bs,
@@ -118,9 +132,23 @@ def build_dataloader(name='cifar10', type='train', args=None):
                 build_dataset('val',
                               'cifar10',
                               args.root,
+                              number=None,
                               args=args,
                               fast=args.fast),
                 batch_size=args.bs,
+                shuffle=False,
+                num_workers=args.nw,
+                pin_memory=True,
+            )
+        elif type == 'uncert':
+            dataloader_type = DataLoader(
+                build_dataset('uncert',
+                              'cifar10',
+                              args.root,
+                              number=number,
+                              args=args,
+                              fast=args.fast),
+                batch_size=args.bs*10,
                 shuffle=False,
                 num_workers=args.nw,
                 pin_memory=True,
@@ -131,6 +159,7 @@ def build_dataloader(name='cifar10', type='train', args=None):
                 build_dataset('train',
                               'cifar100',
                               args.root,
+                              number=None,
                               args=args,
                               fast=args.fast),
                 batch_size=args.bs,
@@ -143,6 +172,20 @@ def build_dataloader(name='cifar10', type='train', args=None):
                 build_dataset('val',
                               'cifar100',
                               args.root,
+                              number=None,
+                              args=args,
+                              fast=args.fast),
+                batch_size=args.bs,
+                shuffle=False,
+                num_workers=args.nw,
+                pin_memory=True,
+            )
+        elif type == 'uncert':
+            dataloader_type = DataLoader(
+                build_dataset('uncert',
+                              'cifar100',
+                              args.root,
+                              number=number,
                               args=args,
                               fast=args.fast),
                 batch_size=args.bs,
@@ -155,58 +198,3 @@ def build_dataloader(name='cifar10', type='train', args=None):
 
     return dataloader_type
 
-
-
-# def build_dataloader(name='cifar10', type='train', args=None):
-#     assert type in ['train', 'val']
-#     assert name in ['cifar10', 'cifar100']
-    
-#     train_x = torch.from_numpy(np.load(f"behaviour_dataset/{name}_x_merge.npy"))
-#     train_y = torch.from_numpy(np.load(f"behaviour_dataset/{name}_y_merge.npy"))
-#     train_dataset = torch.utils.data.TensorDataset(train_x, train_y)
-#     if name == 'cifar10':
-#         if type == 'train':
-#             dataloader_type = DataLoader(
-#                 train_dataset,
-#                 batch_size=args.bs,
-#                 shuffle=True,
-#                 num_workers=args.nw,
-#                 pin_memory=True,
-#             )
-#         elif type == 'val':
-#             dataloader_type = DataLoader(
-#                 build_dataset('val',
-#                               'cifar10',
-#                               args.root,
-#                               args=args,
-#                               fast=args.fast),
-#                 batch_size=args.bs,
-#                 shuffle=False,
-#                 num_workers=args.nw,
-#                 pin_memory=True,
-#             )
-#     elif name == 'cifar100':
-#         if type == 'train':
-#             dataloader_type = DataLoader(
-#                 train_dataset,
-#                 batch_size=args.bs,
-#                 shuffle=True,
-#                 num_workers=args.nw,
-#                 pin_memory=True,
-#             )
-#         elif type == 'val':
-#             dataloader_type = DataLoader(
-#                 build_dataset('val',
-#                               'cifar100',
-#                               args.root,
-#                               args=args,
-#                               fast=args.fast),
-#                 batch_size=args.bs,
-#                 shuffle=False,
-#                 num_workers=args.nw,
-#                 pin_memory=True,
-#             )
-#     else:
-#         raise 'Type Error: {} Not Supported'.format(name)
-
-#     return dataloader_type

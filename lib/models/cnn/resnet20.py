@@ -117,22 +117,22 @@ def resnet20(num_classes=10,MC=False):
 
 
 @register_model
-def resnet32(num_classes=10):
-    return ResNet(BasicBlock, [5, 5, 5], num_classes=num_classes)
+def resnet32(num_classes=10,MC=False):
+    return ResNet(BasicBlock, [5, 5, 5], num_classes=num_classes,MC=MC)
 
 
 @register_model
-def resnet44(num_classes=10):
-    return ResNet(BasicBlock, [7, 7, 7], num_classes=num_classes)
+def resnet44(num_classes=10,MC=False):
+    return ResNet(BasicBlock, [7, 7, 7], num_classes=num_classes,MC=MC)
 
 
 @register_model
-def resnet56(num_classes=10):
-    return ResNet(BasicBlock, [9, 9, 9], num_classes=num_classes)
+def resnet56(num_classes=10,MC=False):
+    return ResNet(BasicBlock, [9, 9, 9], num_classes=num_classes,MC=MC)
 
 
 @register_model
-def resnet110(num_classes=10):
-    return ResNet(BasicBlock, [18, 18, 18], num_classes=num_classes)
+def resnet110(num_classes=10,MC=False):
+    return ResNet(BasicBlock, [18, 18, 18], num_classes=num_classes,MC=MC)
 
 

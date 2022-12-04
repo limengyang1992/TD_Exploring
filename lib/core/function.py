@@ -214,32 +214,106 @@ def validate(args, val_loader, model, criterion, epoch, writer):
 
 
 @torch.no_grad()
-def uncertain_data_epoch(model,loader1,loader2,loader3):
+def uncertain_data_epoch(model,loader1,loader2,loader3,loader4,loader5):
     model.eval()
+    uncertain_epoch_1 = []
+    uncertain_epoch_2 = []
+    uncertain_epoch_3 = []
+    uncertain_epoch_4 = []
+    uncertain_epoch_5 = []
+    
     for i, (index,input,target) in enumerate(loader1):
         input = input.cuda()
         output,feat = model(input)
         logit = torch.nn.functional.softmax(output,dim=1)
         uncertains = torch.sum(logit*torch.log(logit),dim=1)
+        uncertain_epoch_1.append(uncertains)
             
     for i, (index,input,target) in enumerate(loader2):
         input = input.cuda()
         output,feat = model(input)
         logit = torch.nn.functional.softmax(output,dim=1)
         uncertains = torch.sum(logit*torch.log(logit),dim=1)
+        uncertain_epoch_2.append(uncertains)
         
     for i, (index,input,target) in enumerate(loader3):
         input = input.cuda()
         output,feat = model(input)
         logit = torch.nn.functional.softmax(output,dim=1)
         uncertains = torch.sum(logit*torch.log(logit),dim=1)
+        uncertain_epoch_3.append(uncertains)
+    
+    for i, (index,input,target) in enumerate(loader4):
+        input = input.cuda()
+        output,feat = model(input)
+        logit = torch.nn.functional.softmax(output,dim=1)
+        uncertains = torch.sum(logit*torch.log(logit),dim=1)
+        uncertain_epoch_4.append(uncertains)
         
+    for i, (index,input,target) in enumerate(loader5):
+        input = input.cuda()
+        output,feat = model(input)
+        logit = torch.nn.functional.softmax(output,dim=1)
+        uncertains = torch.sum(logit*torch.log(logit),dim=1)
+        uncertain_epoch_5.append(uncertains)
+        
+    uncertain_total1= torch.cat(uncertain_epoch_1).cpu().detach().numpy()[:, np.newaxis]
+    uncertain_total2= torch.cat(uncertain_epoch_2).cpu().detach().numpy()[:, np.newaxis]
+    uncertain_total3= torch.cat(uncertain_epoch_3).cpu().detach().numpy()[:, np.newaxis]
+    uncertain_total4= torch.cat(uncertain_epoch_4).cpu().detach().numpy()[:, np.newaxis]
+    uncertain_total5= torch.cat(uncertain_epoch_5).cpu().detach().numpy()[:, np.newaxis]
+    total = np.concatenate([uncertain_total1, uncertain_total2,uncertain_total3,uncertain_total4,uncertain_total5], axis=1)
+    
+    return total
 
 @torch.no_grad()
 def uncertain_model_epoch(model,loader):
-    for _ in range(3):
-        for i, (index,input,target) in enumerate(loader):
-            input = input.cuda()
-            output,feat = model(input)
-            logit = torch.nn.functional.softmax(output,dim=1)
-            uncertains = torch.sum(logit*torch.log(logit),dim=1)
+    uncertain_epoch_1 = []
+    uncertain_epoch_2 = []
+    uncertain_epoch_3 = []
+    uncertain_epoch_4 = []
+    uncertain_epoch_5 = []
+    
+    for i, (index,input,target) in enumerate(loader):
+        input = input.cuda()
+        output,feat = model(input)
+        logit = torch.nn.functional.softmax(output,dim=1)
+        uncertains = torch.sum(logit*torch.log(logit),dim=1)
+        uncertain_epoch_1.append(uncertains)
+        
+    for i, (index,input,target) in enumerate(loader):
+        input = input.cuda()
+        output,feat = model(input)
+        logit = torch.nn.functional.softmax(output,dim=1)
+        uncertains = torch.sum(logit*torch.log(logit),dim=1)
+        uncertain_epoch_2.append(uncertains)
+        
+    for i, (index,input,target) in enumerate(loader):
+        input = input.cuda()
+        output,feat = model(input)
+        logit = torch.nn.functional.softmax(output,dim=1)
+        uncertains = torch.sum(logit*torch.log(logit),dim=1)
+        uncertain_epoch_3.append(uncertains)
+
+    for i, (index,input,target) in enumerate(loader):
+        input = input.cuda()
+        output,feat = model(input)
+        logit = torch.nn.functional.softmax(output,dim=1)
+        uncertains = torch.sum(logit*torch.log(logit),dim=1)
+        uncertain_epoch_4.append(uncertains)
+        
+    for i, (index,input,target) in enumerate(loader):
+        input = input.cuda()
+        output,feat = model(input)
+        logit = torch.nn.functional.softmax(output,dim=1)
+        uncertains = torch.sum(logit*torch.log(logit),dim=1)
+        uncertain_epoch_5.append(uncertains)
+               
+    uncertain_total1= torch.cat(uncertain_epoch_1).cpu().detach().numpy()[:, np.newaxis]
+    uncertain_total2= torch.cat(uncertain_epoch_2).cpu().detach().numpy()[:, np.newaxis]
+    uncertain_total3= torch.cat(uncertain_epoch_3).cpu().detach().numpy()[:, np.newaxis]
+    uncertain_total4= torch.cat(uncertain_epoch_4).cpu().detach().numpy()[:, np.newaxis]
+    uncertain_total5= torch.cat(uncertain_epoch_5).cpu().detach().numpy()[:, np.newaxis]
+    total = np.concatenate([uncertain_total1, uncertain_total2,uncertain_total3,uncertain_total4,uncertain_total5], axis=1)
+    
+    return total
