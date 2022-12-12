@@ -198,8 +198,9 @@ def main():
     compute_feat_similarity(feat_paths)
 
     # 训练结束，上传cos[邻居id、logit、log.csv][path = args.name]
-    for p_logit in glob(os.path.join(feat_root, "*.npy")):
-        cos_upload_file(p_logit)
+    for path in glob(os.path.join(feat_root, "*.npy")):
+        if "feat" not in path:
+            cos_upload_file(path)
 
     cos_upload_file(f"exps/{args.name}/log.csv")
     cos_upload_file(f"exps/{args.name}/args.txt")

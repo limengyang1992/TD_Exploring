@@ -57,7 +57,7 @@ def compute_feat_similarity(feat_paths,topk=10,batch=1000):
         ids = os.path.split(path)[1].split("_")[1].split(".")[0]
         data  = np.load(path)
         total = sim_epoch(model,data,topk,batch)
-        np.savez_compressed(save_path,total)
+        np.save(save_path,total)
         
          
 if __name__ == "__main__":

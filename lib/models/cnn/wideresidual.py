@@ -3,7 +3,7 @@ import torch.nn as nn
 
 from ..registry import register_model
 
-__all__ = ['wideresnet']
+__all__ = ['wideresnet40_10']
 
 
 class WideBasic(nn.Module):
@@ -38,7 +38,7 @@ class WideBasic(nn.Module):
 
 
 class WideResNet(nn.Module):
-    def __init__(self, num_classes, block, depth=50, widen_factor=1):
+    def __init__(self, num_classes, block, depth=50, widen_factor=1,MC=False):
         super().__init__()
 
         self.depth = depth
@@ -53,7 +53,10 @@ class WideResNet(nn.Module):
         self.relu = nn.ReLU(inplace=True)
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
         self.linear = nn.Linear(64 * k, num_classes)
-
+        self.dropout = nn.Dropout(0.25)
+        self.MCDROPOUT = MC
+        
+        
     def forward(self, x):
         x = self.init_conv(x)
         x = self.conv2(x)
@@ -63,6 +66,8 @@ class WideResNet(nn.Module):
         x = self.relu(x)
         x = self.avg_pool(x)
         feat = x.view(x.size(0), -1)
+        if self.MCDROPOUT:
+            feat = self.dropout(feat)
         x = self.linear(feat)
 
         return x,feat
@@ -95,9 +100,9 @@ class WideResNet(nn.Module):
 
 # Table 9: Best WRN performance over various datasets, single run results.
 @register_model
-def wideresnet(depth=40, widen_factor=10, num_classes=10):
+def wideresnet40_10(num_classes=10,MC=False):
     net = WideResNet(num_classes,
                      WideBasic,
-                     depth=depth,
-                     widen_factor=widen_factor)
+                     depth=40,
+                     widen_factor=10)
     return net

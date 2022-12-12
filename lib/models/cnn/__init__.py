@@ -29,3 +29,4 @@ from .squeezenet import *  # noqa: F401, F403
 from .stochasticdepth import *  # noqa: F401, F403
 from .vgg import *  # noqa: F401, F403
 from .xception import *  # noqa: F401, F403
+from .wideresidual import *

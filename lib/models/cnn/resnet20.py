@@ -113,7 +113,7 @@ class ResNet(nn.Module):
 
 @register_model
 def resnet20(num_classes=10,MC=False):
-    return ResNet(BasicBlock, [3, 3, 3], num_classes=num_classes,MC=MC)
+    return ResNet(BasicBlock, [3, 3, 3], num_classes=num_classes,MC=False)
 
 
 @register_model
