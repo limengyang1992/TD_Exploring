@@ -68,11 +68,11 @@ def download_all():
     for data in ["cifar10", "cifar100"]:
         for i in range(5):
             path = f"behaviour_dataset/{data}_x_cutout_{i+1}.npz"
-            cos_upload_file(path,path)
+            cos_download(path,path)
 
 if __name__ == "__main__":
     
-    upload_all()
+    download_all()
     
 
 

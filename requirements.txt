@@ -1,8 +1,14 @@
-torch
-torchvision
+# torch
+# torchvision
 tqdm
 PyYAML
 einops
 torchsummary
 hyperbox
 thop
+pandas
+colorlog
+cos-python-sdk-v5
+pytorch_lightning
+rich
+omegaconf
