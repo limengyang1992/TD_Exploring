@@ -42,20 +42,37 @@ def cos_download(cos_path, local_path):
     response['Body'].get_stream_to_file(local_path)
 
 
-if __name__ == "__main__":
-    
-    #下载 训练数据
-    
+def upload_all():
     cifar10_x = "behaviour_dataset/cifar10_x_merge.npz"
     cifar10_y = "behaviour_dataset/cifar10_y_merge.npz"
     cifar100_x = "behaviour_dataset/cifar100_x_merge.npz"
     cifar100_y = "behaviour_dataset/cifar100_y_merge.npz"
-    
-    # cos_download(cifar10_x, cifar10_x)
-    # cos_download(cifar10_y, cifar10_y)
-    # cos_download(cifar100_x, cifar100_x)
-    # cos_download(cifar100_y, cifar100_y)
     cos_upload_file(cifar10_x)
     cos_upload_file(cifar10_y)
     cos_upload_file(cifar100_x)
     cos_upload_file(cifar100_y)
+
+    for data in ["cifar10", "cifar100"]:
+        for i in range(5):
+            cos_upload_file(f"behaviour_dataset/{data}_x_cutout_{i+1}.npz")
+        
+def download_all():
+    cifar10_x = "behaviour_dataset/cifar10_x_merge.npz"
+    cifar10_y = "behaviour_dataset/cifar10_y_merge.npz"
+    cifar100_x = "behaviour_dataset/cifar100_x_merge.npz"
+    cifar100_y = "behaviour_dataset/cifar100_y_merge.npz"
+    cos_download(cifar10_x, cifar10_x)
+    cos_download(cifar10_y, cifar10_y)
+    cos_download(cifar100_x, cifar100_x)
+    cos_download(cifar100_y, cifar100_y)
+    for data in ["cifar10", "cifar100"]:
+        for i in range(5):
+            path = f"behaviour_dataset/{data}_x_cutout_{i+1}.npz"
+            cos_upload_file(path,path)
+
+if __name__ == "__main__":
+    
+    upload_all()
+    
+
+
