@@ -1,48 +1,61 @@
 
 import os
+import glob
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+class CosineSimilarity(torch.nn.Module):
+    def __init__(self):
+        super(CosineSimilarity, self).__init__()
+
+    def forward(self, x1, x2):
+        x2 = x2.t()
+        x = x1.mm(x2)
+        x1_frobenius = x1.norm(dim=1).unsqueeze(0).t()
+        x2_frobenins = x2.norm(dim=0).unsqueeze(0)
+        x_frobenins = x1_frobenius.mm(x2_frobenins)
+        final = x.mul(1/x_frobenins)
+        return final
+        
+def jaccard(x,y):
+    return len(list(set(x) & set(y)))/len(set(list(x)+list(y)))
+
+
+def last_epoch(task,epoch,sub,label_one):
+    last_logit = np.load(f"exps/{task}/runs/logit_{epoch-sub}.npy")
+    last_index = np.load(f"exps/{task}/runs/topk_{epoch-sub}.npy")
+    last_sorted_id = np.argsort([x[0] for x in list(last_logit[:,:1].astype("int"))])
+    last_sorted_index = np.array([last_index[x][1:10] for x in last_sorted_id]).astype("int")
+    last_sorted_class = [[label_one[t] for t in x] for x in last_sorted_index]
+    sorted_label =list(np.argmax(last_logit[last_sorted_id][:,1:],axis=1))
+    sorted_forget = [int(sorted_label[i]==label_one[i]) for i in range(len(sorted_label))]
+    return last_sorted_index,last_sorted_class,sorted_forget
+        
 
 def extrace_feature(task,epoch,topk=10):
-    print(f"current epoch: {epoch}")
-    save_dir = os.path.join("exps", task,"feat")
+    save_dir = os.path.join("exps", task,"feature")
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
     save_path = os.path.join(save_dir,f"total_feat_{epoch}")
     total_feature = []
     if "cifar100" in task:
-        label = np.load("exps/cifar100_y_merge.npz")["arr_0"]
+        label = np.load("behaviour_dataset/cifar100_y_merge.npz")["arr_0"]
         label_one = [int(x[0]) for x in label[:,:1]]
         num_classes = 100
     else:
-        label = np.load("exps/cifar10_y_merge.npz")["arr_0"]
+        label = np.load("behaviour_dataset/cifar10_y_merge.npz")["arr_0"]
         label_one = [int(x[0]) for x in label[:,:1]]
-        num_classes = 10
-
-    class CosineSimilarity(torch.nn.Module):
-        def __init__(self):
-            super(CosineSimilarity, self).__init__()
-
-        def forward(self, x1, x2):
-            x2 = x2.t()
-            x = x1.mm(x2)
-            x1_frobenius = x1.norm(dim=1).unsqueeze(0).t()
-            x2_frobenins = x2.norm(dim=0).unsqueeze(0)
-            x_frobenins = x1_frobenius.mm(x2_frobenins)
-            final = x.mul(1/x_frobenins)
-            return final
-        
+        num_classes = 10 
         
     IE_logit = np.load(f"exps/{task}/runs/logit_{epoch}.npy")
-    IE_topk = np.load(f"exps/{task}/runs/topk_{epoch}.npy.npz")["arr_0"]
+    IE_topk = np.load(f"exps/{task}/runs/topk_{epoch}.npy")
     sorted_id = np.argsort([x[0] for x in list(IE_logit[:,:1].astype("int"))])
     IE_logit_sorted = np.array([IE_logit[x][1:] for x in sorted_id])
     IE_topk_sorted = np.array([IE_topk[x][1:] for x in sorted_id])
-    IE_uncer_data = np.load(f"exps/{task}/runs/uncert_data_{epoch}.npy")
-    IE_uncer_model = np.load(f"exps/{task}/runs/uncert_model_{epoch}.npy")
+    IE_uncer_data = -1*np.load(f"exps/{task}/runs/uncert_data_{epoch}.npy")
+    IE_uncer_model = -1*np.load(f"exps/{task}/runs/uncert_model_{epoch}.npy")
 
     IE_logit_tensor = torch.from_numpy(IE_logit_sorted).cuda()
     IE_topk_tensor = torch.from_numpy(IE_topk_sorted).cuda()
@@ -55,6 +68,37 @@ def extrace_feature(task,epoch,topk=10):
     labels_one_hot_a = F.one_hot(target_a,num_classes=num_classes).float()
     labels_one_hot_b = F.one_hot(target_b,num_classes=num_classes).float()
     logit_possible = F.softmax(IE_logit_tensor,dim=1)
+    IE_topk_sorted_class = [[label_one[t] for t in x] for x in IE_topk_sorted[:,0:9].astype("int")]
+    
+    #遗忘状态
+    sorted_label =list(np.argmax(IE_logit_sorted,axis=1))
+    sorted_forget = [int(sorted_label[i]==label_one[i]) for i in range(len(sorted_label))]
+    
+    
+    ########################################### history ######################################################       
+    jaccard_index_1 = torch.from_numpy(np.array([0.0]*len(sorted_id))).cuda()
+    jaccard_class_1 = torch.from_numpy(np.array([0.0]*len(sorted_id))).cuda()
+    jaccard_index_2 = torch.from_numpy(np.array([0.0]*len(sorted_id))).cuda()
+    jaccard_class_2 = torch.from_numpy(np.array([0.0]*len(sorted_id))).cuda()
+    forget_status = torch.from_numpy(np.array([0.0]*len(sorted_id))).cuda()
+    if epoch>0:
+        last1_sorted_index,last1_sorted_class,last1_sorted_forget = last_epoch(task,epoch,1,label_one)
+        jaccard_index_1 = [jaccard(IE_topk_sorted[:,0:9][t],last1_sorted_index[t]) for t in range(len(sorted_id))]
+        jaccard_class_1 = [jaccard(last1_sorted_class[t],IE_topk_sorted_class[t]) for t in range(len(sorted_id))]
+        forget_status = [last1_sorted_forget[t]*1+sorted_forget[t]*2   for t in range(len(sorted_id))]
+        jaccard_index_1 = torch.from_numpy(np.array(jaccard_index_1)).cuda()
+        jaccard_class_1 = torch.from_numpy(np.array(jaccard_class_1)).cuda()
+        forget_status = torch.from_numpy(np.array(forget_status)).cuda()
+    ## Jasscard距离  index  last2
+    if epoch>1:
+        last2_sorted_index,last2_sorted_class,last2_sorted_forget = last_epoch(task,epoch,2,label_one)
+        jaccard_index_2 = [jaccard(IE_topk_sorted[:,0:9][t],last2_sorted_index[t]) for t in range(len(sorted_id))]
+        jaccard_class_2 = [jaccard(IE_topk_sorted_class[t],last2_sorted_class[t]) for t in range(len(sorted_id))]
+        forget_status = [last2_sorted_forget[t]*1+sorted_forget[t]*2   for t in range(len(sorted_id))]
+        jaccard_index_2 = torch.from_numpy(np.array(jaccard_index_2)).cuda()
+        jaccard_class_2 = torch.from_numpy(np.array(jaccard_class_2)).cuda()
+        forget_status = torch.from_numpy(np.array(forget_status)).cuda()
+
 
     ####################################### self ############################################################
 
@@ -77,7 +121,7 @@ def extrace_feature(task,epoch,topk=10):
     others_max =(logit_possible[labels_one_hot_a!=1].reshape(logit_possible.size(0),-1)).max(dim=1).values
     self_margin =  self_possible - others_max
     # feature 5 entropy
-    self_entropy =  torch.sum(F.softmax(IE_logit_tensor,dim=1)*F.log_softmax(IE_logit_tensor,dim=1),dim=1)
+    self_entropy = -1*torch.sum(F.softmax(IE_logit_tensor,dim=1)*F.log_softmax(IE_logit_tensor,dim=1),dim=1)
     # feature 6 uncer_model
     self_uncer_model = torch.mean(uncer_model_tensor,dim=1)
     # feature 7 uncer_data
@@ -86,7 +130,7 @@ def extrace_feature(task,epoch,topk=10):
     self_flag = (torch.argmax(IE_logit_tensor,dim=1) == target_a)*1.0
     IE_possible_tensor = F.softmax(IE_logit_tensor,dim=1)
 
-
+    
     ############################################## self.class #####################################################    
 
     class_logit_value = torch.cat([torch.mean(self_logit_value[target_a==x]).unsqueeze(-1) for x in range(num_classes)])
@@ -98,6 +142,7 @@ def extrace_feature(task,epoch,topk=10):
     class_entropy= torch.cat([torch.mean(self_entropy[target_a==x]).unsqueeze(-1) for x in range(num_classes)])
     class_uncer_model= torch.cat([torch.mean(self_uncer_model[target_a==x]).unsqueeze(-1) for x in range(num_classes)])
     class_uncer_data= torch.cat([torch.mean(self_uncer_data[target_a==x]).unsqueeze(-1) for x in range(num_classes)])
+    class_flag= torch.cat([torch.mean(self_flag[target_a==x]).unsqueeze(-1) for x in range(num_classes)])
 
     ############################################### self.total ####################################################
 
@@ -110,6 +155,7 @@ def extrace_feature(task,epoch,topk=10):
     total_entropy= torch.mean(class_entropy)
     total_uncer_model= torch.mean(class_uncer_model)
     total_uncer_data= torch.mean(class_uncer_data)
+    total_flag = torch.mean(self_flag)
 
     ################################################## self.neighborhood ###########################################
 
@@ -268,17 +314,11 @@ def extrace_feature(task,epoch,topk=10):
     feat75 = neighb_grad_cor/total_grad_cor
     # 类别-全局一致性
     feat76 = class_grad_cor/total_grad_cor
-
-    total_feature.append(self_loss)
-    total_feature.append(self_grad_norm)
-    total_feature.append(self_logit_value)
-    total_feature.append(self_possible)
-    total_feature.append(self_entropy)
-    total_feature.append(self_uncer_data)
-    total_feature.append(self_uncer_model)
-    total_feature.append(self_margin)
-    total_feature.append(self_flag)
+    ############################################# feature5: 补充特征 ####################################################################
+    #类别精度与全局精度比值			
+    acc_class_total = class_flag[target_a]/total_flag
     
+    ############################################# 特征拼接 ##############################################################################
     total_feature.append(feat1)
     total_feature.append(feat2)
     total_feature.append(feat3)
@@ -363,18 +403,35 @@ def extrace_feature(task,epoch,topk=10):
     total_feature.append(feat75)
     total_feature.append(feat76)
     
-    # total_feature.extend([eval(f"feat{x}") for x in range(1,77)])
-    total_feature_reshape = torch.cat(total_feature).view(85,50000).T
-    total_feature_reshape = total_feature_reshape.cpu().numpy()
+    #标签
+    total_feature.append(self_possible)
+    total_feature.append(self_entropy)
+    total_feature.append(self_uncer_data)
+    total_feature.append(self_uncer_model)
+    total_feature.append(self_margin)
     
+    total_feature.append(self_loss)
+    total_feature.append(self_grad_norm)
+    total_feature.append(self_logit_value)
+    
+    #以上84标签可以和历史对比
+    total_feature.append(self_flag)
+    total_feature.append(acc_class_total)
+    total_feature.append(jaccard_index_1)
+    total_feature.append(jaccard_index_2)
+    total_feature.append(jaccard_class_1)
+    total_feature.append(jaccard_class_2)
+    total_feature.append(forget_status)
+    # total_feature.extend([eval(f"feat{x}") for x in range(1,78)])
+    total_feature_reshape = torch.cat(total_feature).view(91,50000).T
+    total_feature_reshape = total_feature_reshape.cpu().numpy()
     np.save(save_path,total_feature_reshape)
 
 
+
+if __name__ == "__main__":
     
-task = "e-gpu0_m-resnet20_d-cifar100__12M_03D_03H__48"
-for epoch in range(0,200):
-    extrace_feature(task,epoch)
-    
-task = "e-gpu0_m-resnet20_d-cifar10__12M_02D_22H__43"
-for epoch in range(0,200):
-    extrace_feature(task,epoch)
+    for task in os.listdir("exps")[::-1]:
+        for epoch in range(0,200):
+            print(f"current task : {task} current epoch: {epoch}")
+            extrace_feature(task,epoch)
