@@ -4,6 +4,7 @@ from qcloud_cos import CosS3Client
 import os
 import sys
 import logging
+import glob
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 secret_id = 'AKIDTmqdlKteW9uPglwmTu6JFCxYxIRWnu76'     
@@ -72,4 +73,7 @@ def download_all():
 
 if __name__ == "__main__":
     
-    download_all()
+    for dir in os.listdir(path='exps'):
+        npys = glob.glob(os.path.join("exps",dir,"feature_total","*.npy"))
+        for npy in npys:
+            cos_upload_file(npy)
