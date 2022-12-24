@@ -431,7 +431,8 @@ def extrace_feature(task,epoch,topk=10):
 
 if __name__ == "__main__":
     
-    for task in os.listdir("exps")[::-1]:
-        for epoch in range(0,200):
-            print(f"current task : {task} current epoch: {epoch}")
-            extrace_feature(task,epoch)
+    # for task in os.listdir("exps"):
+    task = "e-gpu0_m-wideresnet40_10_d-cifar100__12M_14D_09H__50"
+    for epoch in range(0,200):
+        print(f"current task : {task} current epoch: {epoch}")
+        extrace_feature(task,epoch)
