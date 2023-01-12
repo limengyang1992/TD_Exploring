@@ -55,7 +55,9 @@ def extrace_feature(task,epoch,topk=10):
     IE_logit_sorted = np.array([IE_logit[x][1:] for x in sorted_id])
     IE_topk_sorted = np.array([IE_topk[x][1:] for x in sorted_id])
     IE_uncer_data = -1*np.load(f"exps/{task}/runs/uncert_data_{epoch}.npy")
+    IE_uncer_data[np.isnan(IE_uncer_data)]=np.nanmean(IE_uncer_data)
     IE_uncer_model = -1*np.load(f"exps/{task}/runs/uncert_model_{epoch}.npy")
+    IE_uncer_model[np.isnan(IE_uncer_model)]=np.nanmean(IE_uncer_model)
 
     IE_logit_tensor = torch.from_numpy(IE_logit_sorted).cuda()
     IE_topk_tensor = torch.from_numpy(IE_topk_sorted).cuda()
@@ -432,7 +434,7 @@ def extrace_feature(task,epoch,topk=10):
 if __name__ == "__main__":
     
     # for task in os.listdir("exps"):
-    task = "e-gpu0_m-wideresnet40_10_d-cifar100__12M_14D_09H__50"
+    task = "e-gpu0_m-ResNet50_d-cifar10__12M_11D_16H__61"
     for epoch in range(0,200):
         print(f"current task : {task} current epoch: {epoch}")
         extrace_feature(task,epoch)

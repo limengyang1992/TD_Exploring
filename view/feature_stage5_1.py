@@ -8,8 +8,8 @@ import pandas as pd
 # total_paths = glob.glob(os.path.join("exps","*/feature_block/*.npy"))
 # total_index = np.random.permutation(len(total_paths)*100)
 
-total_paths = pd.read_csv("/mnt/st_data/data-behaviour/paths.csv",header=None).iloc[:,1]
-total_index = np.load("/mnt/st_data/data-behaviour/total_index.npy")
+total_paths = pd.read_csv("paths.csv",header=None).iloc[:,1]
+total_index = np.load("total_index.npy")
 
 total_index_1 = total_index[:25000000]
 total_index_2 = total_index[25000000:50000000]
@@ -17,7 +17,7 @@ total_index_3 = total_index[50000000:75000000]
 total_index_4 = total_index[75000000:]
 
 
-choose_index = total_index_2
+choose_index = total_index_1
 choose_start_path = "epoch_0w_25w"
 
 
@@ -27,7 +27,7 @@ for i in range(int(len(choose_index)/200)):
     total = []
     s = time.time()
     for j,num in enumerate(split):
-        path = os.path.join("/mnt/st_data/data-behaviour",total_paths[num//100]) 
+        path = total_paths[num//100]
         index = num%100
         epoch = int(path.split("_")[-2])
         NOs = int(path.split("_")[-1].split(".")[0])+index
@@ -35,7 +35,7 @@ for i in range(int(len(choose_index)/200)):
         merge_data = np.concatenate([np.array([epoch,NOs]),data], axis=0)
         total.append(merge_data[np.newaxis,:])
     result = np.concatenate(total, axis=0)
-    save_path = os.path.join("/home/kunyu","epoch-wise-dataset2",f"{choose_start_path}_{i}.npy")
+    save_path = os.path.join("/mnt/st_data/data-behaviour/exps","epoch-wise-dataset",f"{choose_start_path}_{i}.npy")
     np.save(save_path,result)
     print(i,result.shape,time.time()-s)
     

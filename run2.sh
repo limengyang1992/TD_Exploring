@@ -11,7 +11,7 @@ epochs=200
 
 
 # python tools/train.py --model wideresnet40_10 --dataset cifar10 --epochs ${epochs}   && \
-python tools/train.py --model wideresnet40_10 --dataset cifar10 --epochs ${epochs}  \
+python tools/train.py --model wideresnet40_10 --dataset cifar100 --epochs ${epochs}  \
 
 
 # python tools/train.py --model mobilenetv2 --dataset cifar10 --epochs ${epochs}   && \
