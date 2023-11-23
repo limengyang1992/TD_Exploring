@@ -23,11 +23,11 @@ Code for the TD2Vec section, see TD2Vec/README.md for details.
 
 
 
-## 3. noisy_label_detection 
+## 3. Noisy Label Detection 
 
-Code for the noisy_label_detection section, see noisy_label_detection/README.md for details.
+Code for the noisy label detection section, see noisy_label_detection/README.md for details.
 
 
-## 4. imbalance_learning 
+## 4. Imbalance Learning 
 
-Code for the imbalance_learning section, see imbalance_learning/README.md for details.
+Code for the imbalance learning section, see imbalance_learning/README.md for details.
