@@ -1,0 +1,8 @@
+*.pyc
+models/*
+exps/*
+data/*
+behaviour_dataset/*
+*.png
+*.prof
+*.json
