@@ -1,5 +1,7 @@
 # Official PyTorch implementation for "Delving into the Training Dynamics  for Image Classification". 
 
+![](figures/liu.png)
+
 
 ## 0. Requirements
 
