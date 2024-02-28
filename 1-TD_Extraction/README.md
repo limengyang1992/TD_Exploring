@@ -27,16 +27,17 @@ vision Transformer:
 | DenseNet        | 1175M   | 96.40      | 90.17    | 4.0      |
 
 
-
-
-
-## 2. Training
-
-### 2.1 CIFAR-10训练示例
-baseline on CIFAR-10:
+## 2. Task Training
 
 ```
-python train.py --dataset cifar10
+bash run_task.sh
 ```
+
+## 3. TD Extraction
+
+```
+bash run_td.sh
+```
+
 
 
