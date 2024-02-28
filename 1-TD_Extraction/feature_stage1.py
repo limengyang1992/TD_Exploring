@@ -6,13 +6,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
-def get_task_name(task):
-    t = task.replace("e-gpu1_m-ResNet18_224_d-","").replace("e-gpu1_m-ResNet18_d-","")
-    t = t.split("__")[0]
-    return t
-
-
 class CosineSimilarity(torch.nn.Module):
     def __init__(self):
         super(CosineSimilarity, self).__init__()
@@ -47,104 +40,35 @@ def extrace_feature(task,epoch,topk=10):
         os.makedirs(save_dir)
     save_path = os.path.join(save_dir,f"total_feat_{epoch}")
     total_feature = []
-    t = get_task_name(task)
-    if "MNIST" in task and "FashionMNIST" not in  task and "KMNIST" not in  task:
-        
-        label = np.load(f"behaviour_dataset/{t}/y_merge.npz")["arr_0"]
-        label_one = [int(x[0]) for x in label[:,:1]]
-        num_classes = 10
-    elif "FashionMNIST" in task:
-        label = np.load(f"behaviour_dataset/{t}/y_merge.npz")["arr_0"]
-        label_one = [int(x[0]) for x in label[:,:1]]
-        num_classes = 10
-    elif "KMNIST" in task:
-        label = np.load(f"behaviour_dataset/{t}/y_merge.npz")["arr_0"]
-        label_one = [int(x[0]) for x in label[:,:1]]
-        num_classes = 10
-    elif "CIFAR10" in task and "CIFAR100" not in  task:
-        label = np.load(f"behaviour_dataset/{t}/y_merge.npz")["arr_0"]
-        label_one = [int(x[0]) for x in label[:,:1]]
-        num_classes = 10
-    elif "CIFAR100" in task:
-        label = np.load(f"behaviour_dataset/{t}/y_merge.npz")["arr_0"]
+    if "cifar100" in task:
+        label = np.load("behaviour_dataset/cifar100_y_merge.npz")["arr_0"]
         label_one = [int(x[0]) for x in label[:,:1]]
         num_classes = 100
-    elif "SVHN" in task: 
-        label = np.load(f"behaviour_dataset/{t}/y_merge.npz")["arr_0"]
+    else:
+        label = np.load("behaviour_dataset/cifar10_y_merge.npz")["arr_0"]
         label_one = [int(x[0]) for x in label[:,:1]]
-        num_classes = 10
-    elif "Flowers102" in task:
-        label = np.load(f"behaviour_dataset/{t}/y_merge.npz")["arr_0"]
-        label_one = [int(x[0]) for x in label[:,:1]]
-        num_classes = 102
-    elif "OxfordIIITPet" in task:
-        label = np.load(f"behaviour_dataset/{t}/y_merge.npz")["arr_0"]
-        label_one = [int(x[0]) for x in label[:,:1]]
-        num_classes = 37
-    elif "StanfordCars" in task:
-        label = np.load(f"behaviour_dataset/{t}/y_merge.npz")["arr_0"]
-        label_one = [int(x[0]) for x in label[:,:1]]
-        num_classes = 196
-    elif "imagenet_lt" in task:
-        label = np.load(f"behaviour_dataset/{t}/y_merge.npz")["arr_0"]
-        label_one = [int(x[0]) for x in label[:,:1]]
-        num_classes = 1000
-    elif "places-lt" in task:
-        label = np.load(f"behaviour_dataset/{t}/y_merge.npz")["arr_0"]
-        label_one = [int(x[0]) for x in label[:,:1]]
-        num_classes = 365
-    
-    elif "clothing_noise" in task:
-        label = np.load(f"behaviour_dataset/{t}/y_merge.npz")["arr_0"]
-        label_one = [int(x[0]) for x in label[:,:1]]
-        num_classes = 14
+        num_classes = 10 
         
-    elif "clothing_flip_0.2" in task:
-        label = np.load(f"behaviour_dataset/{t}/y_merge.npz")["arr_0"]
-        label_one = [int(x[0]) for x in label[:,:1]]
-        num_classes = 14
-        
-    elif "clothing_flip_0.4" in task:
-        label = np.load(f"behaviour_dataset/{t}/y_merge.npz")["arr_0"]
-        label_one = [int(x[0]) for x in label[:,:1]]
-        num_classes = 14
-        
-    elif "clothing_sym_0.2" in task:
-        label = np.load(f"behaviour_dataset/{t}/y_merge.npz")["arr_0"]
-        label_one = [int(x[0]) for x in label[:,:1]]
-        num_classes = 14
-        
-    elif "clothing_sym_0.4" in task:
-        label = np.load(f"behaviour_dataset/{t}/y_merge.npz")["arr_0"]
-        label_one = [int(x[0]) for x in label[:,:1]]
-        num_classes = 14
-        
-
-
     IE_logit = np.load(f"exps/{task}/runs/logit_{epoch}.npy")
     IE_topk = np.load(f"exps/{task}/runs/topk_{epoch}.npy")
-    
-    if True in np.isnan(IE_topk):
-        IE_topk[np.isnan(IE_topk)] = 0.0
-        
     sorted_id = np.argsort([x[0] for x in list(IE_logit[:,:1].astype("int"))])
     IE_logit_sorted = np.array([IE_logit[x][1:] for x in sorted_id])
-    IE_topk_sorted = np.array([IE_topk[x] for x in sorted_id])
-    # IE_uncer_data = -1*np.load(f"exps/{task}/runs/uncert_data_{epoch}.npy")
-    # IE_uncer_model = -1*np.load(f"exps/{task}/runs/uncert_model_{epoch}.npy")
+    IE_topk_sorted = np.array([IE_topk[x][1:] for x in sorted_id])
+    IE_uncer_data = -1*np.load(f"exps/{task}/runs/uncert_data_{epoch}.npy")
+    IE_uncer_data[np.isnan(IE_uncer_data)]=np.nanmean(IE_uncer_data)
+    IE_uncer_model = -1*np.load(f"exps/{task}/runs/uncert_model_{epoch}.npy")
+    IE_uncer_model[np.isnan(IE_uncer_model)]=np.nanmean(IE_uncer_model)
 
     IE_logit_tensor = torch.from_numpy(IE_logit_sorted).cuda()
     IE_topk_tensor = torch.from_numpy(IE_topk_sorted).cuda()
-    # uncer_data_tensor = torch.from_numpy(IE_uncer_data).cuda()
-    # uncer_model_tensor = torch.from_numpy(IE_uncer_model).cuda()
-    
-    label = label[:IE_logit_tensor.shape[0]]
+    uncer_data_tensor = torch.from_numpy(IE_uncer_data).cuda()
+    uncer_model_tensor = torch.from_numpy(IE_uncer_model).cuda()
     target = torch.from_numpy(label).cuda()
     target_a = target[:,:1].view(-1).long().cuda()
     target_b = target[:,1:2].view(-1).long().cuda()
     target_l = target[:,2:3].view(-1).float().cuda()
-    labels_one_hot_a = F.one_hot(target_a,num_classes=num_classes).float().cuda()
-    labels_one_hot_b = F.one_hot(target_b,num_classes=num_classes).float().cuda()
+    labels_one_hot_a = F.one_hot(target_a,num_classes=num_classes).float()
+    labels_one_hot_b = F.one_hot(target_b,num_classes=num_classes).float()
     logit_possible = F.softmax(IE_logit_tensor,dim=1)
     IE_topk_sorted_class = [[label_one[t] for t in x] for x in IE_topk_sorted[:,0:9].astype("int")]
     
@@ -180,11 +104,6 @@ def extrace_feature(task,epoch,topk=10):
 
     ####################################### self ############################################################
 
-    # labels_one_hot_a = labels_one_hot_a[:IE_logit_tensor.shape[0]]
-    # labels_one_hot_b = labels_one_hot_b[:IE_logit_tensor.shape[0]]
-    # target_a = target_a[:IE_logit_tensor.shape[0]]
-    # target_b = target_b[:IE_logit_tensor.shape[0]]
-    # target_l = target_l[:IE_logit_tensor.shape[0]]
     # feature 0 logit_value
     logit_left = target_l*torch.sum(IE_logit_tensor * labels_one_hot_a,dim=1)
     logit_right = (1 - target_l)*torch.sum(IE_logit_tensor * labels_one_hot_b,dim=1)
@@ -206,9 +125,9 @@ def extrace_feature(task,epoch,topk=10):
     # feature 5 entropy
     self_entropy = -1*torch.sum(F.softmax(IE_logit_tensor,dim=1)*F.log_softmax(IE_logit_tensor,dim=1),dim=1)
     # feature 6 uncer_model
-    # self_uncer_model = torch.mean(uncer_model_tensor,dim=1)
+    self_uncer_model = torch.mean(uncer_model_tensor,dim=1)
     # feature 7 uncer_data
-    # self_uncer_data = torch.mean(uncer_data_tensor,dim=1)
+    self_uncer_data = torch.mean(uncer_data_tensor,dim=1)
     # feature 8 是否正确
     self_flag = (torch.argmax(IE_logit_tensor,dim=1) == target_a)*1.0
     IE_possible_tensor = F.softmax(IE_logit_tensor,dim=1)
@@ -223,8 +142,8 @@ def extrace_feature(task,epoch,topk=10):
     class_grad_norm= torch.cat([torch.mean(self_grad_norm[target_a==x]).unsqueeze(-1) for x in range(num_classes)])
     class_margin= torch.cat([torch.mean(self_margin[target_a==x]).unsqueeze(-1) for x in range(num_classes)])
     class_entropy= torch.cat([torch.mean(self_entropy[target_a==x]).unsqueeze(-1) for x in range(num_classes)])
-    # class_uncer_model= torch.cat([torch.mean(self_uncer_model[target_a==x]).unsqueeze(-1) for x in range(num_classes)])
-    # class_uncer_data= torch.cat([torch.mean(self_uncer_data[target_a==x]).unsqueeze(-1) for x in range(num_classes)])
+    class_uncer_model= torch.cat([torch.mean(self_uncer_model[target_a==x]).unsqueeze(-1) for x in range(num_classes)])
+    class_uncer_data= torch.cat([torch.mean(self_uncer_data[target_a==x]).unsqueeze(-1) for x in range(num_classes)])
     class_flag= torch.cat([torch.mean(self_flag[target_a==x]).unsqueeze(-1) for x in range(num_classes)])
 
     ############################################### self.total ####################################################
@@ -236,8 +155,8 @@ def extrace_feature(task,epoch,topk=10):
     total_grad_norm= sum(class_grad_norm)
     total_margin= torch.mean(class_margin)
     total_entropy= torch.mean(class_entropy)
-    # total_uncer_model= torch.mean(class_uncer_model)
-    # total_uncer_data= torch.mean(class_uncer_data)
+    total_uncer_model= torch.mean(class_uncer_model)
+    total_uncer_data= torch.mean(class_uncer_data)
     total_flag = torch.mean(self_flag)
 
     ################################################## self.neighborhood ###########################################
@@ -248,8 +167,8 @@ def extrace_feature(task,epoch,topk=10):
     self_neighb_grad_norm= torch.mean(torch.cat([self_grad_norm[IE_topk_tensor[:,x:x+1].long()] for x in range(1,topk)],dim=1),dim=1)
     self_neighb_margin= torch.mean(torch.cat([self_margin[IE_topk_tensor[:,x:x+1].long()] for x in range(1,topk)],dim=1),dim=1)
     self_neighb_entropy= torch.mean(torch.cat([self_entropy[IE_topk_tensor[:,x:x+1].long()] for x in range(1,topk)],dim=1),dim=1)
-    # self_neighb_uncer_model= torch.mean(torch.cat([self_uncer_model[IE_topk_tensor[:,x:x+1].long()] for x in range(1,topk)],dim=1),dim=1)
-    # self_neighb_uncer_data= torch.mean(torch.cat([self_uncer_data[IE_topk_tensor[:,x:x+1].long()] for x in range(1,topk)],dim=1),dim=1)
+    self_neighb_uncer_model= torch.mean(torch.cat([self_uncer_model[IE_topk_tensor[:,x:x+1].long()] for x in range(1,topk)],dim=1),dim=1)
+    self_neighb_uncer_data= torch.mean(torch.cat([self_uncer_data[IE_topk_tensor[:,x:x+1].long()] for x in range(1,topk)],dim=1),dim=1)
 
 
     ################################################## feature1:  rate  ###########################################
@@ -310,34 +229,32 @@ def extrace_feature(task,epoch,topk=10):
     feat42 = self_entropy.sort().indices.sort().indices/len(self_entropy)
 
     # feature 6 uncer_model
-    # feat43 = self_uncer_model/class_uncer_model[target_a]
-    # feat44 = self_uncer_model/self_neighb_uncer_model
-    # feat45 = self_neighb_uncer_model/class_uncer_model[target_a]
-    # feat46 = self_neighb_uncer_model/total_uncer_model
-    # feat47 = self_uncer_model/total_uncer_model
-    # feat48 = class_uncer_model[target_a]/total_uncer_model
-    # feat49 = self_uncer_model.sort().indices.sort().indices/len(self_uncer_model)
+    feat43 = self_uncer_model/class_uncer_model[target_a]
+    feat44 = self_uncer_model/self_neighb_uncer_model
+    feat45 = self_neighb_uncer_model/class_uncer_model[target_a]
+    feat46 = self_neighb_uncer_model/total_uncer_model
+    feat47 = self_uncer_model/total_uncer_model
+    feat48 = class_uncer_model[target_a]/total_uncer_model
+    feat49 = self_uncer_model.sort().indices.sort().indices/len(self_uncer_model)
 
-    # # feature 7 uncer_data
-    # feat50 = self_uncer_data/class_uncer_data[target_a]
-    # feat51 = self_uncer_data/self_neighb_uncer_data
-    # feat52 = self_neighb_uncer_data/class_uncer_data[target_a]
-    # feat53 = self_neighb_uncer_data/total_uncer_data
-    # feat54 = self_uncer_data/total_uncer_data
-    # feat55 = class_uncer_data[target_a]/total_uncer_data
-    # feat56 = self_uncer_data.sort().indices.sort().indices/len(self_uncer_data)
+    # feature 7 uncer_data
+    feat50 = self_uncer_data/class_uncer_data[target_a]
+    feat51 = self_uncer_data/self_neighb_uncer_data
+    feat52 = self_neighb_uncer_data/class_uncer_data[target_a]
+    feat53 = self_neighb_uncer_data/total_uncer_data
+    feat54 = self_uncer_data/total_uncer_data
+    feat55 = class_uncer_data[target_a]/total_uncer_data
+    feat56 = self_uncer_data.sort().indices.sort().indices/len(self_uncer_data)
 
     ############################################## feature2: KL散度 #####################################################
 
     # 邻域平均KL距离
     neighb_possible_center = [torch.mean(IE_possible_tensor[x],dim=0) for x in IE_topk_tensor[:,:9].long()]  # 每个样本类别
-    ###XXXXXX
     neighb_possible_kl = torch.cat([F.kl_div(neighb_possible_center[t],IE_possible_tensor[t]).unsqueeze(0) for t in range(len(IE_possible_tensor))])
     feat57 = neighb_possible_kl
     # 类别平均KL距离
     class_possible_center = [torch.mean(IE_possible_tensor[target_a==x],dim=0) for x in range(num_classes)]  # 每个样本类别
-    ###XXXXXX
-    class_possible_kl = torch.cat([F.kl_div(class_possible_center[target_a[t]],IE_possible_tensor[t]).unsqueeze(0) for t in range(len(IE_possible_tensor))])
+    class_possible_kl = torch.cat([F.kl_div(class_possible_center[target_a[t]],IE_possible_tensor).unsqueeze(0) for t in range(len(IE_possible_tensor))])
     feat58 = class_possible_kl
     # 全局平均KL距离
     # 全局一致性
@@ -379,7 +296,7 @@ def extrace_feature(task,epoch,topk=10):
 
     # 邻域一致性
     cos_model = CosineSimilarity()
-    neighb_grad= [self_grad[x] for x in IE_topk_tensor[:,:3].long()]  # 每个样本邻域
+    neighb_grad= [self_grad[x] for x in IE_topk_tensor[:,:9].long()]  # 每个样本邻域
     neighb_grad_cor = torch.cat([torch.mean(cos_model(self_grad[t].unsqueeze(0),neighb_grad[t]),dim=1) for t in range(len(self_grad))])
     feat71 = neighb_grad_cor
     # neighb_grad_center = [torch.mean(self_grad[x],dim=0) for x in IE_topk_tensor[:,:9].long()]  # 每个样本邻域
@@ -450,21 +367,21 @@ def extrace_feature(task,epoch,topk=10):
     
     total_feature.append(feat41)
     total_feature.append(feat42)
-    # total_feature.append(feat43)
-    # total_feature.append(feat44)
-    # total_feature.append(feat45)
-    # total_feature.append(feat46)
-    # total_feature.append(feat47)
-    # total_feature.append(feat48)
-    # total_feature.append(feat49)
-    # total_feature.append(feat50)
+    total_feature.append(feat43)
+    total_feature.append(feat44)
+    total_feature.append(feat45)
+    total_feature.append(feat46)
+    total_feature.append(feat47)
+    total_feature.append(feat48)
+    total_feature.append(feat49)
+    total_feature.append(feat50)
     
-    # total_feature.append(feat51)
-    # total_feature.append(feat52)
-    # total_feature.append(feat53)
-    # total_feature.append(feat54)
-    # total_feature.append(feat55)
-    # total_feature.append(feat56)
+    total_feature.append(feat51)
+    total_feature.append(feat52)
+    total_feature.append(feat53)
+    total_feature.append(feat54)
+    total_feature.append(feat55)
+    total_feature.append(feat56)
     total_feature.append(feat57)
     total_feature.append(feat58)
     total_feature.append(feat59)
@@ -491,8 +408,8 @@ def extrace_feature(task,epoch,topk=10):
     #标签
     total_feature.append(self_possible)
     total_feature.append(self_entropy)
-    # total_feature.append(self_uncer_data)
-    # total_feature.append(self_uncer_model)
+    total_feature.append(self_uncer_data)
+    total_feature.append(self_uncer_model)
     total_feature.append(self_margin)
     
     total_feature.append(self_loss)
@@ -508,18 +425,16 @@ def extrace_feature(task,epoch,topk=10):
     total_feature.append(jaccard_class_2)
     total_feature.append(forget_status)
     # total_feature.extend([eval(f"feat{x}") for x in range(1,78)])
-    total_feature_reshape = torch.cat(total_feature).view(75,-1).T
+    total_feature_reshape = torch.cat(total_feature).view(91,50000).T
     total_feature_reshape = total_feature_reshape.cpu().numpy()
     np.save(save_path,total_feature_reshape)
 
 
 
 if __name__ == "__main__":
-    
+
     for task in os.listdir("exps"):
-        # if  "cifar" in task.lower(): continue
-        # if  "mnist" in task.lower(): continue
-        if  not "e-gpu1_m-ResNet18_224_d-clothing_flip_0.4__03M_01D_18H__82" in task: continue
+        print(task)
         for epoch in range(0,120):
             print(f"current task : {task} current epoch: {epoch}")
             extrace_feature(task,epoch)
