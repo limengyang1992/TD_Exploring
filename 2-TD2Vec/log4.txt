@@ -1,3 +1,0 @@
-2023-06-03 11:31:01,595 - __main__ - INFO - Model: ts2vec with Attension
-2023-06-03 11:48:00,149 - __main__ - INFO - Model: ts2vec with Attension
-2023-06-03 11:50:46,697 - __main__ - INFO - Model: ts2vec with Attension

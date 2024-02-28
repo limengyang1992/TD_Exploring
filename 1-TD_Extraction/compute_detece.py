@@ -63,6 +63,3 @@ for d in os.listdir("behaviour_dataset_task"):
     print(rate_loss_3,rate_margin_3,rate_grad_3)
 
     
-    # 去除epoch的loss等、
-    # 排序指标，取前多少个，定标签
-    # 计算精度f1
