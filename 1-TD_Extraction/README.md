@@ -15,9 +15,6 @@
 
 ## 1. Implements
 
-### 1.1 Models
-
-vision Transformer:
 
 | Model              | GPU Mem | Top1:train | Top1:val | weight:M |
 | ------------------ | ------- | ---------- | -------- | -------- |

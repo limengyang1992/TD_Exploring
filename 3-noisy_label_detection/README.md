@@ -17,7 +17,7 @@ python test_gnld.py
 ```
 
 
-## SL Visualisation
+## sl visualisation
 ```
 python plot_tsne_sl.py
 ```

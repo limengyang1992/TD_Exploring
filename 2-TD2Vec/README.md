@@ -16,7 +16,7 @@ python train_td2vec.py
 python test_td2vec.py
 ```
 
-## SSL Visualisation
+## ssl visualisation
 ```
 python plot_tsne_ssl.py
 ```

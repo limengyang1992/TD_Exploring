@@ -10,5 +10,5 @@ A new code framework that uses pytorch to implement meta-learning, and takes Met
 
 ## Running this example
 ```
-python MWN-DRTS.py
+python MWN-DRTS.py --dataset cifar10 --imbalanced_factor 100
 ```
