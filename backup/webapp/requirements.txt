@@ -1,4 +1,0 @@
-# api
-cos-python-sdk-v5
-streamlit
-pillow==9.1.0
