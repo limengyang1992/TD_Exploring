@@ -21,7 +21,9 @@ Code for the TD2Vec section, see TD2Vec/README.md for details.
 ## 3. Noisy Label Detection 
 
 Code for the noisy label detection section, see noisy_label_detection/README.md for details.
-
+<div style="display: flex; justify-content: space-between;">
+    <img src="figures\gnld.png" alt="Image 1" style="width: 70%;">
+</div>
 ![](figures/gnld.png)
 
 ## 4. Imbalance Learning 
