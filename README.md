@@ -11,8 +11,6 @@ Code for the Extraction of TD Quantities section, see TD_Extraction/README.md fo
 </div>
 
 
-![](figures/liu.png)
-
 ## 2. TD2Vec 
 
 Code for the TD2Vec section, see TD2Vec/README.md for details.
@@ -35,4 +33,8 @@ Code for the noisy label detection section, see noisy_label_detection/README.md 
 
 Code for the imbalance learning section, see imbalance_learning/README.md for details.
 
-![](figures/MWN-DRTS.png)
+Code for the noisy label detection section, see noisy_label_detection/README.md for details.
+<div style="display: flex; justify-content: space-between;">
+    <img src="figures\MWN-DRTS.png" alt="Image 1" style="width: 70%;">
+</div>
+
