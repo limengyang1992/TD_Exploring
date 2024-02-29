@@ -17,8 +17,8 @@ Code for the TD2Vec section, see TD2Vec/README.md for details.
 
 
 <div style="display: flex; justify-content: space-between;">
-    <img src="figures\scatter_sl.png" alt="Image 1" style="width: 30%;">
-    <img src="figures\scatter_sl.png" alt="Image 2" style="width: 30%;">
+    <img src="figures\scatter_sl.png" alt="Image 1" style="width: 35%;">
+    <img src="figures\scatter_sl.png" alt="Image 2" style="width: 35%;">
 </div>
 
 ## 3. Noisy Label Detection 
