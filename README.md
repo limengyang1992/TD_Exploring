@@ -6,6 +6,11 @@
 
 Code for the Extraction of TD Quantities section, see TD_Extraction/README.md for details.
 
+<div style="display: flex; justify-content: space-between;">
+    <img src="figures\liu.png" alt="Image 1" style="width: 70%;">
+</div>
+
+
 ![](figures/liu.png)
 
 ## 2. TD2Vec 
